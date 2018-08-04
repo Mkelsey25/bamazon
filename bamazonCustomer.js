@@ -49,6 +49,7 @@ function welcomeToBamazon() {
                 }
                 else if(answer.item == res[i].item_id && answer.units <= res[i].stock_quantity) {
                     console.log("Let me go get that for you!");
+                    console.log("Your total will be" + " " + answer.units * res[i].price);
                     newStockNumber = res[i].stock_quantity - answer.units;
                     //UPDATE DATABASE
                     connection.query("UPDATE products SET ? WHERE ?", [
@@ -60,7 +61,9 @@ function welcomeToBamazon() {
                         }
                     ], function(err) {
                         if(err) throw err;
-                        console.log("Here ya go!");
+                        console.log("Come again!");
+
+                        //welcomeToBamazon();
                     });
 
                     //Show customer total price of purchase price * units
@@ -76,7 +79,8 @@ function welcomeToBamazon() {
     
         })
     })
-}
+};
+
     
     
     
