@@ -1,8 +1,5 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-var arg1 = process.argv[2];
-var arg2 = process.argv[3];
-var arg3 = process.argv[4];
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
@@ -13,71 +10,13 @@ var connection = mysql.createConnection({
 
 connection.connect(function(err) {
     if(err) throw err;
-
     welcomeToBamazon();
 });
 
 
-
-//connection.end();
-
 function welcomeToBamazon() {
     connection.query("SELECT * FROM bamazon.products", function(err, res) {
         displayItems();
-        inquirer.prompt([
-            {
-            name: "item",
-            type: "input",
-            message: "Hello, please tell me the item ID for the item you seek.",
-            
-        },
-        {
-            name: "units",
-            type: "input",
-            message: "How many units do you wish to purchase?"
-        }
-        ]).then(function(answer) {
-    
-            console.log("truuu");
-            console.log(answer.units); 
-            console.log(res[1]);
-            //CHECK STOCK
-            for(i = 0; i < 10; i++) {
-                if(answer.item == res[i].item_id && answer.units > res[i].stock_quantity) {
-                    console.log("Insufficient Quantity!");
-                    //Prevent order from processing (do nothing, don't overthink it)
-                }
-                else if(answer.item == res[i].item_id && answer.units <= res[i].stock_quantity) {
-                    console.log("Let me go get that for you!");
-                    console.log("Your total will be" + " " + answer.units * res[i].price);
-                    newStockNumber = res[i].stock_quantity - answer.units;
-                    //UPDATE DATABASE
-                    connection.query("UPDATE products SET ? WHERE ?", [
-                        {
-                            stock_quantity: newStockNumber
-                        },
-                        {
-                            item_id: answer.item 
-                        }
-                    ], function(err) {
-                        if(err) throw err;
-                        console.log("Come again!");
-
-                        //welcomeToBamazon();
-                    });
-
-                    //Show customer total price of purchase price * units
-                    //showPrice();
-                }
-                else {
-                    //console.log("That's not it!");
-                }
-            }
-    
-            
-            
-    
-        })
     })
 };
 
@@ -89,8 +28,60 @@ function welcomeToBamazon() {
         var query = "SELECT * FROM bamazon.products";
         connection.query(query, function(err, res) {
             for (var i = 0; i < res.length; i++) {
-                    console.log(res[i].item_id, res[i].product_name, res[i].price);
+                    console.log("\n Item ID: " + res[i].item_id + " " + "\n Name: "  + res[i].product_name + " " + "\n Price: $" + res[i].price);
             }
+            inquirer.prompt([
+                {
+                name: "item",
+                type: "input",
+                message: "Hello, please tell me the item ID for the item you seek.",
+                
+            },
+            {
+                name: "units",
+                type: "input",
+                message: "How many units do you wish to purchase?"
+            }
+    
+            ]).then(function(answer) {
+                //CHECK STOCK
+                for(i = 0; i < 10; i++) {
+                    if(answer.item == res[i].item_id && answer.units > res[i].stock_quantity) {
+                        console.log("Insufficient Quantity!");
+                        //Prevent order from processing (do nothing, don't overthink it)
+                    }
+                    else if(answer.item == res[i].item_id && answer.units <= res[i].stock_quantity) {
+                        console.log("Let me go get that for you!");
+                        //SHOW PRICE
+                        console.log("Your total will be" + " $" + answer.units * res[i].price);
+                        newStockNumber = res[i].stock_quantity - answer.units;
+                        //UPDATE DATABASE
+                        connection.query("UPDATE products SET ? WHERE ?", [
+                            {
+                                stock_quantity: newStockNumber
+                            },
+                            {
+                                item_id: answer.item 
+                            }
+                        ], function(err) {
+                            if(err) throw err;
+                            console.log("Press Ctrl + C to exit, and come again!");
+    
+                            //welcomeToBamazon();
+                        });
+    
+                        //Show customer total price of purchase price * units
+                        //showPrice();
+                    }
+                    else {
+                        //console.log("That's not it!");
+                    }
+                }
+        
+                
+                
+        
+            })
     
         });
     
